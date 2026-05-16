@@ -1,6 +1,8 @@
 package com.itu.MarinDemo.repositories;
 
 import com.itu.MarinDemo.entities.Persona;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,20 +14,30 @@ import java.util.List;
 public interface PersonaRepository extends BaseRepository<Persona, Long> {
     // Anotacion metodo de query
     List<Persona> findByNombreContainingOrApellidoContaining(String nombre, String apellido);
-    boolean existsByDNI(int dni);
+
+    Page<Persona> findByNombreContainingOrApellidoContaining(String nombre, String apellido,  Pageable pageable);
 
     // Anotacion JPQL parametros indexados
-    @Query(value = "SELECT p FROM Persona p WHERE p.nombre LIKE '%?1%' OR p.apellido LIKE '%?1%' ")
+    @Query(value = "SELECT p FROM Persona p WHERE p.nombre LIKE %:filtro% OR p.apellido LIKE %:filtro% ")
     List<Persona> search(String filtro);
 
-    // Anotacon JPQL parametros nombrados
+    @Query(value = "SELECT p FROM Persona p WHERE p.nombre LIKE %:filtro% OR p.apellido LIKE %:filtro% ")
+    Page<Persona> search(String filtro,  Pageable pageable);
+
+    // Anotacion JPQL parametros nombrados
 //    @Query(value = "SELECT p FROM Persona p WHERE p.nombre LIKE '%:filtro%' OR p.apellido LIKE '%:filtro%' ")
-//    List<Persona> searc(@Param("filtro") String filtro);
+//    List<Persona> search(@Param("filtro") String filtro);
 
     @Query(
-            value = "SELECT * FROM Persona WHERE persona.nombre LIKE '%?1%' OR persona.apellido LIKE '%?1%' ",
+            value = "SELECT * FROM Persona WHERE persona.nombre LIKE %:filtro% OR persona.apellido LIKE %:filtro%",
             nativeQuery = true
     )
-    List<Persona> searc(String filtro);
+    List<Persona> searchNativo(@Param("filtro") String filtro);
 
+    @Query(
+            value = "SELECT * FROM Persona WHERE persona.nombre LIKE %:filtro% OR persona.apellido LIKE %:filtro%",
+            countQuery = "SELECT count(*) FROM persona",
+            nativeQuery = true
+    )
+    Page<Persona> searchNativo(@Param("filtro") String filtro, Pageable pageable);
 }
